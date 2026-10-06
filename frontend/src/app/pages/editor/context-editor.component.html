@@ -1,0 +1,270 @@
+<div class="editor-container">
+
+  <!-- Header Navigation & Actions -->
+  <div class="editor-header glass-panel">
+    <div class="header-left">
+      <a routerLink="/" class="back-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Dashboard
+      </a>
+
+      <div class="title-editor">
+        <input 
+          type="text" 
+          [(ngModel)]="title" 
+          (ngModelChange)="onRawContentChange()"
+          class="title-input" 
+          placeholder="Context Title (e.g. Auth Architecture & Rules)" />
+        <span *ngIf="isEditMode" class="version-badge">v{{ version }}</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="project-input-group">
+        <label>Project Workspace:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="project" 
+          (ngModelChange)="onRawContentChange()"
+          placeholder="Project Name" />
+      </div>
+
+      <div class="public-toggle">
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="isPublic">
+          <span class="slider round"></span>
+        </label>
+        <span class="toggle-label">{{ isPublic ? 'Public' : 'Private' }}</span>
+      </div>
+
+      <button class="btn-primary" [disabled]="isSaving" (click)="save()">
+        <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span *ngIf="!isSaving">{{ isEditMode ? 'Update Capsule' : 'Save & Publish' }}</span>
+        <span *ngIf="isSaving">Saving...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Realtime Token & Character Compression Metrics Banner -->
+  <div class="token-metrics-bar glass-panel">
+    <div class="metric-block">
+      <span class="metric-label">RAW PROSE</span>
+      <span class="metric-val text-muted-red">
+        {{ originalTokens | number }} <span class="metric-unit">tokens</span>
+        <span class="metric-subval">({{ rawContent.length }} chars)</span>
+      </span>
+    </div>
+    
+    <div class="metric-arrow">➔</div>
+
+    <div class="metric-block">
+      <span class="metric-label">AI COMPRESSED</span>
+      <span class="metric-val text-cyan">
+        {{ compressedTokens | number }} <span class="metric-unit">tokens</span>
+        <span class="metric-subval">({{ compressedContent.length }} chars)</span>
+      </span>
+    </div>
+
+    <div class="metric-block">
+      <span class="metric-label">SAVED HEADROOM</span>
+      <span class="metric-val text-emerald">
+        -{{ compressionRatio }}%
+        <span class="metric-subval">(-{{ getCharRatio() }}% chars)</span>
+      </span>
+    </div>
+
+    <div class="compression-status">
+      <span *ngIf="isCompressing" class="status-pulse">⚡ Distilling Semantic AST...</span>
+      <span *ngIf="!isCompressing" class="status-ready">✓ Optimized for LLM Ingestion</span>
+    </div>
+
+    <!-- Strategy Selector Pills -->
+    <div class="strategy-selector">
+      <span class="strategy-label">Compression Strategy:</span>
+      <button 
+        class="strategy-pill" 
+        [class.active]="compressionStrategy === 'SEMANTIC_DENSE'"
+        (click)="setStrategy('SEMANTIC_DENSE')">
+        Semantic AST
+      </button>
+      <button 
+        class="strategy-pill" 
+        [class.active]="compressionStrategy === 'STATE_KV'"
+        (click)="setStrategy('STATE_KV')">
+        Key-Value
+      </button>
+      <button 
+        class="strategy-pill" 
+        [class.active]="compressionStrategy === 'MARKDOWN_OUTLINE'"
+        (click)="setStrategy('MARKDOWN_OUTLINE')">
+        Markdown
+      </button>
+      <button 
+        class="strategy-pill pill-ai" 
+        [class.active]="compressionStrategy === 'AI_DEEP_DISTILL'"
+        (click)="setStrategy('AI_DEEP_DISTILL')"
+        [title]="aiProvider === 'OPENAI' ? 'Distill using OpenAI Cloud API (' + aiModel + ')' : 'Distill using local 1B model in LM Studio (port 1234)'">
+        ✨ Deep AI Distill ({{ aiProvider === 'OPENAI' ? 'OpenAI ' + aiModel : 'LM Studio' }})
+        <span class="lmstudio-dot" [class.online]="isLmStudioOnline" [title]="isLmStudioOnline ? (aiProvider === 'OPENAI' ? 'OpenAI Cloud Ready' : 'LM Studio Online (Port 1234)') : 'AI Engine Offline'"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Two-Column Workbench -->
+  <div class="workbench-grid">
+
+    <!-- Left Column: Raw Input -->
+    <div class="workbench-card glass-panel">
+      <div class="card-top">
+        <div class="top-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <h4>Raw AI Chat Transcript &amp; Decisions</h4>
+        </div>
+        <span class="char-count">{{ rawContent.length }} characters ({{ originalTokens }} tokens)</span>
+      </div>
+
+      <textarea 
+        [(ngModel)]="rawContent" 
+        (ngModelChange)="onRawContentChange()"
+        placeholder="Paste conversation transcript, architectural choices, error messages, code constraints, or meeting notes here..."
+        class="raw-textarea"></textarea>
+
+      <div class="card-bottom">
+        <input 
+          type="text" 
+          [(ngModel)]="tags" 
+          placeholder="Tags (e.g. SpringBoot, JWT, Postgres, Microservices)" 
+          class="tags-input" />
+      </div>
+    </div>
+
+    <!-- Right Column: AI Compressed Representation -->
+    <div class="workbench-card glass-panel">
+      <div class="card-top">
+        <div class="top-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <h4>AI-Native Dense Output (Minimal Tokens)</h4>
+        </div>
+
+        <div class="top-actions">
+          <span class="char-count text-cyan" [title]="'Character compression ratio: -' + getCharRatio() + '%'">
+            {{ compressedContent.length }} characters (-{{ getCharRatio() }}%)
+          </span>
+          <button class="btn-copy-action" (click)="copyPrompt()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy AI Prompt
+          </button>
+        </div>
+      </div>
+
+      <textarea 
+        [(ngModel)]="compressedContent" 
+        placeholder="AI-native compressed output will appear here automatically..."
+        class="compressed-textarea" 
+        readonly></textarea>
+
+      <div class="card-bottom ai-format-info">
+        <span>⚡ LLMs parse this bracketed AST notation with near 0% token waste.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sharable Endpoints Section (If Saved) -->
+  <div *ngIf="shareSlug" class="share-endpoints-section glass-panel">
+    <h3>Multi-AI Endpoints for this Context</h3>
+    <p class="subtitle">Use these links to inject this exact context across any AI engine or share with team collaborators.</p>
+
+    <div class="endpoints-grid">
+      <div class="endpoint-box">
+        <div class="ep-header">
+          <span class="ep-badge ep-human">WEB</span>
+          <span class="ep-title">Collaborator Web Dashboard</span>
+        </div>
+        <div class="ep-url">{{ getShareUrl() }}</div>
+        <button class="btn-secondary ep-btn" (click)="copyText(getShareUrl(), 'Share Link')">Copy URL</button>
+      </div>
+
+      <div class="endpoint-box">
+        <div class="ep-header">
+          <span class="ep-badge ep-raw">RAW</span>
+          <span class="ep-title">AI Direct Fetch (ChatGPT / Perplexity)</span>
+        </div>
+        <div class="ep-url">{{ getRawUrl() }}</div>
+        <button class="btn-secondary ep-btn" (click)="copyText(getRawUrl(), 'AI Raw Fetch URL')">Copy Raw</button>
+      </div>
+
+      <div class="endpoint-box">
+        <div class="ep-header">
+          <span class="ep-badge ep-mcp">MCP</span>
+          <span class="ep-title">Model Context Protocol URI</span>
+        </div>
+        <div class="ep-url">{{ getMcpUrl() }}</div>
+        <button class="btn-secondary ep-btn" (click)="copyText(getMcpUrl(), 'MCP URL')">Copy MCP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collaboration & Team Notes Section -->
+  <div *ngIf="contextId" class="notes-section glass-panel">
+    <div class="notes-header">
+      <h3>Collaborator Timeline &amp; Annotations ({{ notes.length }})</h3>
+      <p class="subtitle">Log architectural adjustments, AI session findings, or review notes from collaborators.</p>
+    </div>
+
+    <!-- Add Note Box -->
+    <div class="add-note-box">
+      <input 
+        type="text" 
+        [(ngModel)]="newNoteAuthor" 
+        placeholder="Your Name / AI Session (e.g. Abhishek or Claude-3.5)" 
+        class="note-author-input" />
+      <textarea 
+        [(ngModel)]="newNoteContent" 
+        placeholder="Add context note, update explanation, or teammate comment..." 
+        class="note-content-input"></textarea>
+      <button class="btn-primary" [disabled]="isAddingNote" (click)="addNote()">
+        Post Note
+      </button>
+    </div>
+
+    <!-- Notes List -->
+    <div class="notes-list">
+      <div *ngFor="let n of notes" class="note-card">
+        <div class="note-meta">
+          <span class="note-author">{{ n.authorName }}</span>
+          <span class="note-date">{{ n.createdAt | date:'medium' }}</span>
+        </div>
+        <p class="note-text">{{ n.note }}</p>
+      </div>
+
+      <div *ngIf="notes.length === 0" class="no-notes">
+        No notes logged yet. Add updates as different AIs or team members make decisions!
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="toast">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+</div>

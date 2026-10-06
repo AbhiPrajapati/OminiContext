@@ -1,0 +1,52 @@
+<div class="app-layout">
+  <!-- Global Top Navbar -->
+  <header class="top-nav glass-panel">
+    <div class="nav-content">
+      <a routerLink="/" class="nav-brand">
+        <span class="brand-logo-icon">⚡</span>
+        <span class="brand-title">Omni<span class="gradient-text">Context</span></span>
+        <span class="badge badge-violet badge-sm">AI Sync Hub</span>
+      </a>
+
+      <div class="nav-links">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Capsules
+        </a>
+
+        <a routerLink="/editor" routerLinkActive="active" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          Studio &amp; Distill
+        </a>
+      </div>
+
+      <div class="nav-actions">
+        <div class="backend-status-pill">
+          <span class="status-dot"></span>
+          <span>MongoDB (27017) • Spring Boot (8085)</span>
+        </div>
+
+        <a routerLink="/editor" class="btn-primary btn-nav">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Capsule
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Area -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

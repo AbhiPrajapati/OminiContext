@@ -1,0 +1,278 @@
+<div class="dashboard-container">
+
+  <!-- Top Hero & Analytics Banner -->
+  <section class="hero-section glass-panel">
+    <div class="hero-left">
+      <div class="hero-tag">
+        <span class="pulse-dot"></span>
+        <span>UNIVERSAL AI CONTEXT BRIDGE</span>
+      </div>
+      <h1 class="hero-title">OmniContext Hub</h1>
+      <p class="hero-subtitle">
+        Preserve and compress your project memory once. Inject it seamlessly into 
+        <strong class="highlight-text">ChatGPT, Claude, Gemini, Cursor, and Copilot</strong> with up to 85% fewer tokens.
+      </p>
+      
+      <div class="ai-badges">
+        <span class="ai-badge"><span class="badge-dot dot-gpt"></span> ChatGPT Web &amp; API</span>
+        <span class="ai-badge"><span class="badge-dot dot-claude"></span> Claude 3.5 Sonnet</span>
+        <span class="ai-badge"><span class="badge-dot dot-gemini"></span> Google Gemini</span>
+        <span class="ai-badge"><span class="badge-dot dot-cursor"></span> Cursor &amp; MCP</span>
+      </div>
+    </div>
+
+    <!-- Live Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Stored Contexts</span>
+        <span class="stat-value">{{ stats?.totalContexts || contexts.length }}</span>
+        <span class="stat-desc">Active capsules</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Tokens Saved</span>
+        <span class="stat-value text-emerald">{{ (stats?.totalTokensSaved || 0) | number }}</span>
+        <span class="stat-desc">Window headroom preserved</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Avg. Compression</span>
+        <span class="stat-value text-cyan">{{ stats?.averageCompressionRatio || 72 }}%</span>
+        <span class="stat-desc">Token density boost</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Control & Filter Bar -->
+  <div class="toolbar-section">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (ngModelChange)="onSearchChange()" 
+        placeholder="Search contexts by title, project, rules, or tags..." />
+      <span *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''; onSearchChange()">✕</span>
+    </div>
+
+    <div class="project-filters">
+      <button 
+        class="filter-pill" 
+        [class.active]="selectedProject === 'ALL'"
+        (click)="selectProject('ALL')">
+        All Projects ({{ contexts.length }})
+      </button>
+      <button 
+        *ngFor="let proj of projects" 
+        class="filter-pill" 
+        [class.active]="selectedProject === proj"
+        (click)="selectProject(proj)">
+        {{ proj }}
+      </button>
+    </div>
+
+    <button class="btn-secondary" (click)="loadData(true)" title="Refresh Contexts">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Refresh
+    </button>
+
+    <button class="btn-primary new-btn" (click)="openEditor()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      New Context Capsule
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Distilling and syncing AI context memory...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredContexts.length === 0" class="empty-state glass-panel">
+    <div class="empty-icon">📁</div>
+    <h3>No Context Capsules Found</h3>
+    <p>Create your first AI context capsule to synchronize across ChatGPT, Claude, and Cursor.</p>
+    <button class="btn-primary" (click)="openEditor()">Create First Context</button>
+  </div>
+
+  <!-- Context Cards Grid -->
+  <div *ngIf="!isLoading && filteredContexts.length > 0" class="contexts-grid">
+    <div 
+      *ngFor="let c of filteredContexts" 
+      class="context-card glass-panel"
+      (click)="openEditor(c.id)">
+
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="card-meta">
+          <span class="project-badge">{{ c.project }}</span>
+          <span class="version-tag">v{{ c.version }}</span>
+          <span *ngIf="c.isPublic" class="badge-public">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            Public
+          </span>
+        </div>
+
+        <div class="card-menu-actions">
+          <button class="icon-btn" title="Fork Context" (click)="forkContext(c, $event)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="6" y1="3" x2="6" y2="15"></line>
+              <circle cx="18" cy="6" r="3"></circle>
+              <circle cx="6" cy="18" r="3"></circle>
+              <path d="M18 9a9 9 0 0 1-9 9"></path>
+            </svg>
+          </button>
+          <button class="icon-btn text-danger" title="Delete Context" (click)="deleteContext(c.id, c.title, $event)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Title & Description -->
+      <h3 class="card-title">{{ c.title }}</h3>
+      <p class="card-desc">{{ c.description || 'Synchronized memory capsule for cross-AI task execution.' }}</p>
+
+      <!-- Token & Character Compression Meter -->
+      <div class="compression-meter">
+        <div class="meter-info">
+          <span class="token-comparison">
+            <span class="strikethrough">{{ c.originalTokens }}t <span class="char-dim">({{ c.rawContent.length }}c)</span></span>
+            <span class="arrow">➔</span>
+            <span class="compressed-tokens">{{ c.compressedTokens }}t <span class="char-dim">({{ c.compressedContent.length }}c)</span></span>
+          </span>
+          <span class="badge badge-emerald" [title]="'Tokens: -' + c.compressionRatio + '% | Characters: -' + getCharRatio(c.rawContent, c.compressedContent) + '%'">
+            -{{ c.compressionRatio }}% Saved (-{{ getCharRatio(c.rawContent, c.compressedContent) }}% chars)
+          </span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" [style.width.%]="100 - c.compressionRatio"></div>
+        </div>
+      </div>
+
+      <!-- Compressed Context Snippet Preview -->
+      <div class="context-preview">
+        <div class="preview-mini-header">
+          <span class="preview-strategy-tag">{{ c.compressionStrategy }}</span>
+          <span class="preview-chars-counter">{{ c.compressedContent.length }} chars</span>
+        </div>
+        <code>{{ c.compressedContent }}</code>
+      </div>
+
+      <!-- Tags list -->
+      <div *ngIf="c.tags" class="tags-container">
+        <span *ngFor="let tag of c.tags.split(',')" class="tag-pill">
+          #{{ tag.trim() }}
+        </span>
+      </div>
+
+      <!-- Card Action Footer -->
+      <div class="card-footer" (click)="$event.stopPropagation()">
+        <button class="btn-action-primary" (click)="copyPrompt(c, $event)" title="Copy ready-to-use prompt for ChatGPT, Claude or Cursor">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Prompt
+        </button>
+
+        <button class="btn-action-subtle" (click)="copyRawLink(c, $event)" title="Copy raw URL for AI web search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          AI URL
+        </button>
+
+        <button class="btn-action-subtle" (click)="openShareModal(c, $event)" title="Share & Endpoints">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          Share
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share & Multi-AI Modal -->
+  <div *ngIf="showShareModal && selectedShareCapsule" class="modal-backdrop" (click)="closeShareModal()">
+    <div class="modal-content glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3>Share &amp; Inject AI Context</h3>
+          <p class="modal-subtitle">{{ selectedShareCapsule.title }} (v{{ selectedShareCapsule.version }})</p>
+        </div>
+        <button class="close-modal-btn" (click)="closeShareModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="endpoint-item">
+          <div class="endpoint-header">
+            <span class="endpoint-label">🌐 Human Dashboard View (Share with Collaborators)</span>
+            <button class="btn-copy-small" (click)="copyText(getShareUrl(selectedShareCapsule.shareSlug), 'Share URL')">Copy Link</button>
+          </div>
+          <div class="endpoint-code">{{ getShareUrl(selectedShareCapsule.shareSlug) }}</div>
+        </div>
+
+        <div class="endpoint-item">
+          <div class="endpoint-header">
+            <span class="endpoint-label">⚡ AI Direct Fetch Raw URL (For ChatGPT Web / Perplexity / curl)</span>
+            <button class="btn-copy-small" (click)="copyText(getRawUrl(selectedShareCapsule.shareSlug), 'AI Raw URL')">Copy Raw URL</button>
+          </div>
+          <div class="endpoint-code">{{ getRawUrl(selectedShareCapsule.shareSlug) }}</div>
+          <p class="endpoint-hint">Paste into ChatGPT/Claude: <em>"Read project context from this URL and resume task."</em></p>
+        </div>
+
+        <div class="endpoint-item">
+          <div class="endpoint-header">
+            <span class="endpoint-label">🤖 Model Context Protocol (MCP) Resource URI</span>
+            <button class="btn-copy-small" (click)="copyText(getMcpUrl(selectedShareCapsule.shareSlug), 'MCP URI')">Copy MCP URL</button>
+          </div>
+          <div class="endpoint-code">{{ getMcpUrl(selectedShareCapsule.shareSlug) }}</div>
+          <p class="endpoint-hint">For Cursor, Claude Desktop, and Antigravity IDE MCP clients.</p>
+        </div>
+
+        <!-- 1-Click Clipboard Prompt -->
+        <div class="prompt-box">
+          <div class="prompt-box-header">
+            <span>Universal AI Injected Prompt Preview ({{ selectedShareCapsule.compressedTokens }} tokens):</span>
+            <button class="btn-primary btn-sm" (click)="copyPrompt(selectedShareCapsule, $event)">
+              Copy Prompt
+            </button>
+          </div>
+          <pre class="prompt-preview"><code>=== OMNICONTEXT ACTIVE MEMORY [{{ selectedShareCapsule.title }} | {{ selectedShareCapsule.project }} | v{{ selectedShareCapsule.version }}] ===
+{{ selectedShareCapsule.compressedContent }}
+=== INSTRUCTIONS FOR AI ===
+Absorb the state, tech stack, and decisions above as ground-truth memory.</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+</div>

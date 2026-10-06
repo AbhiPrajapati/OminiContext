@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OmniContext Sync</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="header-brand">
+        <span class="logo">⚡</span>
+        <span class="title">OmniContext</span>
+      </div>
+      <div id="status-pill" class="status-pill">
+        <span class="dot"></span>
+        <span id="status-text">Checking...</span>
+      </div>
+    </div>
+
+    <div class="popup-body">
+      <div class="form-group">
+        <label for="project-input">Target Project Workspace:</label>
+        <input type="text" id="project-input" placeholder="e.g. FintechCloud or Personal" value="WebChat">
+      </div>
+
+      <button id="sync-current-btn" class="btn-primary">
+        ⚡ Sync Current AI Chat Tab
+      </button>
+
+      <div id="result-message" class="result-message" style="display: none;"></div>
+
+      <div class="quick-links">
+        <a href="http://localhost:4250" target="_blank" class="dashboard-link">
+          Open Web Dashboard ➔
+        </a>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

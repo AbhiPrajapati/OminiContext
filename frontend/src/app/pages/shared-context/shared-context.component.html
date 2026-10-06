@@ -1,0 +1,203 @@
+<div class="shared-container">
+
+  <!-- Header Navigation -->
+  <div class="shared-nav">
+    <a routerLink="/" class="brand-link">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">OmniContext Hub</span>
+    </a>
+
+    <div class="nav-right">
+      <button *ngIf="capsule" class="btn-secondary" (click)="forkThisContext()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="6" y1="3" x2="6" y2="15"></line>
+          <circle cx="18" cy="6" r="3"></circle>
+          <circle cx="6" cy="18" r="3"></circle>
+          <path d="M18 9a9 9 0 0 1-9 9"></path>
+        </svg>
+        Fork to Workspace
+      </button>
+
+      <a routerLink="/editor" class="btn-primary">
+        + Create Context
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Fetching synchronized AI context...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="error-state glass-panel">
+    <div class="error-icon">⚠️</div>
+    <h3>Context Unavailable</h3>
+    <p>{{ errorMessage }}</p>
+    <a routerLink="/" class="btn-primary">Back to Dashboard</a>
+  </div>
+
+  <!-- Main Shared Capsule View -->
+  <div *ngIf="!isLoading && capsule" class="shared-content">
+
+    <!-- Capsule Header Card -->
+    <div class="capsule-hero glass-panel">
+      <div class="hero-top">
+        <div class="hero-meta">
+          <span class="project-pill">{{ capsule.project }}</span>
+          <span class="version-tag">Version {{ capsule.version }}</span>
+          <span class="date-tag">Updated {{ capsule.updatedAt | date:'mediumDate' }}</span>
+        </div>
+
+        <div class="savings-badge">
+          <span class="badge badge-emerald">-{{ capsule.compressionRatio }}% Tokens Saved</span>
+        </div>
+      </div>
+
+      <h1 class="capsule-title">{{ capsule.title }}</h1>
+      <p *ngIf="capsule.description" class="capsule-desc">{{ capsule.description }}</p>
+
+      <!-- Token Efficiency Bar -->
+      <div class="efficiency-strip">
+        <div class="efficiency-item">
+          <span class="eff-label">Original Chat Tokens:</span>
+          <span class="eff-val strikethrough">{{ capsule.originalTokens }}</span>
+        </div>
+        <div class="eff-arrow">➔</div>
+        <div class="efficiency-item">
+          <span class="eff-label">Compressed AI Tokens:</span>
+          <span class="eff-val text-cyan">{{ capsule.compressedTokens }}</span>
+        </div>
+        <div class="efficiency-item token-diff">
+          <span class="eff-label">Window Headroom Preserved:</span>
+          <span class="eff-val text-emerald">{{ capsule.originalTokens - capsule.compressedTokens }} tokens</span>
+        </div>
+      </div>
+
+      <!-- Quick AI Injector Buttons -->
+      <div class="ai-inject-bar">
+        <span class="inject-label">One-Click Multi-AI Inject:</span>
+        <button class="btn-ai btn-gpt" (click)="copyPrompt()">
+          <span class="ai-icon">🟢</span> Copy for ChatGPT
+        </button>
+        <button class="btn-ai btn-claude" (click)="copyPrompt()">
+          <span class="ai-icon">🟠</span> Copy for Claude
+        </button>
+        <button class="btn-ai btn-cursor" (click)="copyPrompt()">
+          <span class="ai-icon">🟣</span> Copy for Cursor
+        </button>
+        <button class="btn-ai btn-raw" (click)="copyRawUrl()">
+          <span class="ai-icon">⚡</span> Copy Raw AI Link
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Viewer Tabs -->
+    <div class="tabs-container glass-panel">
+      <div class="tabs-header">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'compressed'"
+          (click)="activeTab = 'compressed'">
+          ⚡ AI-Optimized Format ({{ capsule.compressedTokens }} tokens)
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'prompt'"
+          (click)="activeTab = 'prompt'">
+          🤖 Ready-To-Inject Prompt
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'raw'"
+          (click)="activeTab = 'raw'">
+          📄 Original Transcript ({{ capsule.originalTokens }} tokens)
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'mcp'"
+          (click)="activeTab = 'mcp'">
+          🔌 MCP Schema
+        </button>
+      </div>
+
+      <!-- Tab 1: AI Compressed Format -->
+      <div *ngIf="activeTab === 'compressed'" class="tab-pane">
+        <div class="pane-toolbar">
+          <span class="pane-hint">Dense symbolic AST notation ready to paste into any LLM:</span>
+          <button class="btn-copy-action" (click)="copyPrompt()">Copy Format</button>
+        </div>
+        <pre class="code-viewer"><code>{{ capsule.compressedContent }}</code></pre>
+      </div>
+
+      <!-- Tab 2: Injection Prompt -->
+      <div *ngIf="activeTab === 'prompt'" class="tab-pane">
+        <div class="pane-toolbar">
+          <span class="pane-hint">Complete prompt with memory boundaries and system instructions:</span>
+          <button class="btn-copy-action" (click)="copyPrompt()">Copy Prompt</button>
+        </div>
+        <pre class="code-viewer"><code>{{ getPromptText() }}</code></pre>
+      </div>
+
+      <!-- Tab 3: Original Transcript -->
+      <div *ngIf="activeTab === 'raw'" class="tab-pane">
+        <div class="pane-toolbar">
+          <span class="pane-hint">Full uncompressed human transcript &amp; notes:</span>
+        </div>
+        <pre class="code-viewer"><code>{{ capsule.rawContent }}</code></pre>
+      </div>
+
+      <!-- Tab 4: MCP Schema -->
+      <div *ngIf="activeTab === 'mcp'" class="tab-pane">
+        <div class="pane-toolbar">
+          <span class="pane-hint">Model Context Protocol (MCP) JSON resource schema:</span>
+          <button class="btn-copy-action" (click)="copyMcpResource()">Copy MCP JSON</button>
+        </div>
+        <pre class="code-viewer"><code>{{ getMcpText() }}</code></pre>
+      </div>
+    </div>
+
+    <!-- Collaborator Discussion & Notes -->
+    <div class="notes-container glass-panel">
+      <h3>Collaborator Timeline &amp; Feedback</h3>
+      <p class="subtitle">Notes added by team members or different AI sessions using this context.</p>
+
+      <div class="add-note-inline">
+        <input 
+          type="text" 
+          [(ngModel)]="newNoteAuthor" 
+          placeholder="Your Name (e.g. Abhishek)" 
+          class="author-input" />
+        <textarea 
+          [(ngModel)]="newNoteContent" 
+          placeholder="Leave a comment or context note on this capsule..." 
+          class="note-textarea"></textarea>
+        <button class="btn-primary" [disabled]="isAddingNote" (click)="addNote()">
+          Post Comment
+        </button>
+      </div>
+
+      <div class="notes-feed">
+        <div *ngFor="let n of notes" class="feed-item">
+          <div class="feed-header">
+            <span class="feed-author">{{ n.authorName }}</span>
+            <span class="feed-date">{{ n.createdAt | date:'medium' }}</span>
+          </div>
+          <p class="feed-body">{{ n.note }}</p>
+        </div>
+
+        <div *ngIf="notes.length === 0" class="no-feed">
+          No collaborator comments yet. Be the first to add notes!
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="toastMessage" class="toast">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+</div>

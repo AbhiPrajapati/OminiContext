@@ -1,0 +1,16 @@
+{
+  "name": "omnicontext-watcher",
+  "version": "1.0.0",
+  "description": "OmniContext Auto-Watcher & MCP Server Executable for IDEs and CLI AIs",
+  "main": "watcher.js",
+  "bin": "watcher.js",
+  "scripts": {
+    "start": "node watcher.js",
+    "build:exe": "npx @yao-pkg/pkg . --targets node18-win-x64 --output bin/omnicontext-watcher.exe"
+  },
+  "pkg": {
+    "scripts": "watcher.js",
+    "assets": []
+  },
+  "dependencies": {}
+}

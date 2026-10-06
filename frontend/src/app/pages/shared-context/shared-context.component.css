@@ -1,0 +1,328 @@
+.shared-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 80px 20px;
+}
+
+/* Nav */
+.shared-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.brand-icon {
+  font-size: 1.4rem;
+}
+.brand-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Capsule Hero */
+.capsule-hero {
+  padding: 32px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(22, 28, 46, 0.7) 0%, rgba(15, 20, 34, 0.85) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.project-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.18);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.version-tag, .date-tag {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.capsule-title {
+  font-size: 2.1rem;
+  color: #fff;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.capsule-desc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Efficiency Strip */
+.efficiency-strip {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.efficiency-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.eff-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.eff-val {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.eff-arrow {
+  color: var(--accent-cyan);
+}
+.token-diff {
+  margin-left: auto;
+}
+
+/* AI Inject Bar */
+.ai-inject-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inject-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.btn-ai {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-ai:hover {
+  transform: translateY(-1px);
+}
+.btn-gpt:hover {
+  border-color: #10a37f;
+  background: rgba(16, 163, 127, 0.15);
+}
+.btn-claude:hover {
+  border-color: #d97706;
+  background: rgba(217, 119, 6, 0.15);
+}
+.btn-cursor:hover {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+}
+.btn-raw:hover {
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.15);
+}
+
+/* Tabs */
+.tabs-container {
+  padding: 0;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 14px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: #fff;
+}
+.tab-btn.active {
+  color: #c4b5fd;
+  border-bottom-color: var(--accent-primary);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.tab-pane {
+  padding: 20px;
+}
+
+.pane-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.pane-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.btn-copy-action {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.btn-copy-action:hover {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+.code-viewer {
+  background: #090c13;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.code-viewer code {
+  font-size: 0.85rem;
+  color: #93c5fd;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Discussion Notes */
+.notes-container {
+  padding: 24px;
+}
+.notes-container h3 {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.add-note-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+}
+.author-input {
+  max-width: 250px;
+  padding: 7px 12px;
+  font-size: 0.85rem;
+}
+.note-textarea {
+  min-height: 70px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+.add-note-inline button {
+  align-self: flex-start;
+}
+
+.notes-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.feed-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.feed-author {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c4b5fd;
+}
+.feed-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.feed-body {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.no-feed {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 10px 0;
+}
+
+/* Loading & Error */
+.loading-state, .error-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
