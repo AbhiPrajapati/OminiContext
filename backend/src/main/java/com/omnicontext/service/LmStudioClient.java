@@ -45,7 +45,18 @@ public class LmStudioClient {
         this.model = model;
         this.timeoutSeconds = timeoutSeconds;
         this.enabled = enabled;
-        this.openAiApiKey = openAiApiKey != null ? openAiApiKey.trim() : "";
+
+        // Strictly read openai.api-key from application.properties so OS-level OPENAI_API_KEY environment variable doesn't hijack it
+        String explicitKey = "";
+        try {
+            org.springframework.core.io.ClassPathResource resource = new org.springframework.core.io.ClassPathResource("application.properties");
+            if (resource.exists()) {
+                Properties props = org.springframework.core.io.support.PropertiesLoaderUtils.loadProperties(resource);
+                explicitKey = props.getProperty("openai.api-key", "").trim();
+            }
+        } catch (Exception ignored) {}
+
+        this.openAiApiKey = explicitKey;
         this.openAiModel = (openAiModel != null && !openAiModel.isBlank()) ? openAiModel.trim() : "gpt-4o-mini";
         String cleanOpenAiUrl = (openAiBaseUrl != null && !openAiBaseUrl.isBlank()) ? openAiBaseUrl.trim() : "https://api.openai.com/v1";
         this.openAiBaseUrl = cleanOpenAiUrl.endsWith("/") ? cleanOpenAiUrl.substring(0, cleanOpenAiUrl.length() - 1) : cleanOpenAiUrl;
