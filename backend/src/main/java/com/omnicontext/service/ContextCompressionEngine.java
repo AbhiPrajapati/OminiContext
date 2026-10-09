@@ -70,11 +70,13 @@ public class ContextCompressionEngine {
         if (lmStudioClient == null) {
             status.put("online", false);
             status.put("provider", "NONE");
+            status.put("providerMode", "NONE");
             return status;
         }
         boolean openAiConfigured = lmStudioClient.isOpenAiConfigured();
         boolean available = lmStudioClient.isAvailable();
         status.put("online", available);
+        status.put("providerMode", lmStudioClient.getAiProvider().name());
         status.put("provider", openAiConfigured ? "OPENAI" : "LMSTUDIO");
         status.put("model", openAiConfigured ? lmStudioClient.getOpenAiModel() : (available ? lmStudioClient.resolveModelName() : "default"));
         status.put("port", openAiConfigured ? 443 : 1234);

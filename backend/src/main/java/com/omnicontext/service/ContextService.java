@@ -1,14 +1,18 @@
 package com.omnicontext.service;
 
 import com.omnicontext.dto.*;
+import com.omnicontext.exception.PayloadTooLargeException;
+import com.omnicontext.exception.ResourceNotFoundException;
 import com.omnicontext.model.ContextCapsule;
 import com.omnicontext.model.ContextCollaborator;
 import com.omnicontext.repository.ContextCapsuleRepository;
 import com.omnicontext.repository.ContextCollaboratorRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,15 +25,18 @@ public class ContextService {
     private final ContextCompressionEngine compressionEngine;
     private final MongoTemplate mongoTemplate;
     private final SecureRandom random = new SecureRandom();
+    private final long maxRawContentBytes;
 
     public ContextService(ContextCapsuleRepository repository,
                           ContextCollaboratorRepository collaboratorRepository,
                           ContextCompressionEngine compressionEngine,
-                          MongoTemplate mongoTemplate) {
+                          MongoTemplate mongoTemplate,
+                          @Value("${payload.max-raw-content-bytes:51200}") long maxRawContentBytes) {
         this.repository = repository;
         this.collaboratorRepository = collaboratorRepository;
         this.compressionEngine = compressionEngine;
         this.mongoTemplate = mongoTemplate;
+        this.maxRawContentBytes = maxRawContentBytes;
     }
 
     public List<ContextCapsule> getAllContexts(String search, String project) {
@@ -51,6 +58,9 @@ public class ContextService {
     }
 
     public ContextCapsule createContext(CreateContextRequest req) {
+        // Payload size guard
+        validatePayloadSize(req.getRawContent());
+
         ContextCapsule capsule = new ContextCapsule();
         capsule.setId(UUID.randomUUID().toString());
         capsule.setTitle(req.getTitle().trim());
@@ -82,7 +92,7 @@ public class ContextService {
 
     public ContextCapsule updateContext(String id, UpdateContextRequest req) {
         ContextCapsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Context capsule not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("ContextCapsule", id));
 
         boolean needsRecompression = false;
 
@@ -108,6 +118,7 @@ public class ContextService {
             needsRecompression = true;
         }
         if (req.getRawContent() != null && !req.getRawContent().equals(capsule.getRawContent())) {
+            validatePayloadSize(req.getRawContent());
             capsule.setRawContent(req.getRawContent());
             needsRecompression = true;
         }
@@ -136,6 +147,9 @@ public class ContextService {
     }
 
     public void deleteContext(String id) {
+        if (!repository.existsById(id)) {
+            throw new ResourceNotFoundException("ContextCapsule", id);
+        }
         collaboratorRepository.deleteByContextId(id);
         repository.deleteById(id);
     }
@@ -165,7 +179,7 @@ public class ContextService {
 
     public ContextCapsule forkContext(String sourceId) {
         ContextCapsule source = repository.findById(sourceId)
-                .orElseThrow(() -> new IllegalArgumentException("Source context capsule not found with ID: " + sourceId));
+                .orElseThrow(() -> new ResourceNotFoundException("ContextCapsule", sourceId));
 
         ContextCapsule forked = new ContextCapsule();
         forked.setId(UUID.randomUUID().toString());
@@ -194,6 +208,9 @@ public class ContextService {
         String raw = req.getRawContent() != null ? req.getRawContent() : "";
         String strategy = req.getCompressionStrategy() != null ? req.getCompressionStrategy() : "SEMANTIC_DENSE";
 
+        // Validate payload size for preview too
+        validatePayloadSize(raw);
+
         ContextCompressionEngine.CompressionResult res = compressionEngine.compress(title, project, raw, strategy);
         return new CompressPreviewResponse(
                 res.getCompressedContent(),
@@ -207,7 +224,7 @@ public class ContextService {
 
     public ContextCollaborator addNote(String contextId, AddNoteRequest req) {
         if (!repository.existsById(contextId)) {
-            throw new IllegalArgumentException("Context not found with ID: " + contextId);
+            throw new ResourceNotFoundException("ContextCapsule", contextId);
         }
         ContextCollaborator note = new ContextCollaborator();
         note.setId(UUID.randomUUID().toString());
@@ -244,6 +261,19 @@ public class ContextService {
                 Math.round(avgRatio * 10.0) / 10.0,
                 projects
         );
+    }
+
+    /**
+     * Validates rawContent payload size against the configured maximum.
+     * Prevents memory DOS and prompt injection abuse on large payloads.
+     */
+    private void validatePayloadSize(String rawContent) {
+        if (rawContent != null) {
+            long sizeBytes = rawContent.getBytes(StandardCharsets.UTF_8).length;
+            if (sizeBytes > maxRawContentBytes) {
+                throw new PayloadTooLargeException(sizeBytes, maxRawContentBytes);
+            }
+        }
     }
 
     private String generateUniqueSlug() {

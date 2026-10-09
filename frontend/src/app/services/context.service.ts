@@ -10,12 +10,13 @@ import {
   CompressPreviewResponse,
   StatsSummary
 } from '../models/context.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContextService {
-  private readonly baseUrl = 'http://localhost:8085/api';
+  private readonly baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

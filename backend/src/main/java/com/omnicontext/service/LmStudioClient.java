@@ -2,6 +2,7 @@ package com.omnicontext.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omnicontext.config.AiProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ public class LmStudioClient {
     private final String openAiApiKey;
     private final String openAiModel;
     private final String openAiBaseUrl;
+    private final AiProvider aiProvider;
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -40,11 +42,13 @@ public class LmStudioClient {
             @Value("${openai.api-key:}") String openAiApiKey,
             @Value("${openai.model:gpt-4o-mini}") String openAiModel,
             @Value("${openai.base-url:https://api.openai.com/v1}") String openAiBaseUrl,
+            @Value("${ai.provider:AUTO}") String aiProviderStr,
             ObjectMapper objectMapper) {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.model = model;
         this.timeoutSeconds = timeoutSeconds;
         this.enabled = enabled;
+        this.aiProvider = AiProvider.fromString(aiProviderStr);
 
         // Strictly read openai.api-key from application.properties so OS-level OPENAI_API_KEY environment variable doesn't hijack it
         String explicitKey = "";
@@ -55,6 +59,11 @@ public class LmStudioClient {
                 explicitKey = props.getProperty("openai.api-key", "").trim();
             }
         } catch (Exception ignored) {}
+
+        // If the property is a placeholder like ${OPENAI_API_KEY:}, use the injected value
+        if (explicitKey.startsWith("${")) {
+            explicitKey = openAiApiKey != null ? openAiApiKey.trim() : "";
+        }
 
         this.openAiApiKey = explicitKey;
         this.openAiModel = (openAiModel != null && !openAiModel.isBlank()) ? openAiModel.trim() : "gpt-4o-mini";
@@ -72,6 +81,9 @@ public class LmStudioClient {
             clientBuilder.sslContext(sslContext);
         }
         this.httpClient = clientBuilder.build();
+
+        log.info("AI Provider mode: {} | OpenAI key configured: {} | Local LLM enabled: {}",
+                aiProvider, isOpenAiConfigured(), enabled);
     }
 
     private SSLContext createSslContext() {
@@ -100,14 +112,49 @@ public class LmStudioClient {
     }
 
     /**
-     * Check if AI provider is available.
-     * Note: If an OpenAI API key is set, local LM Studio is NOT checked.
+     * Returns the configured AI provider mode.
+     */
+    public AiProvider getAiProvider() {
+        return aiProvider;
+    }
+
+    /**
+     * Determine if we should use OpenAI based on provider setting.
+     */
+    private boolean shouldUseOpenAi() {
+        return switch (aiProvider) {
+            case OPENAI -> isOpenAiConfigured();
+            case LOCAL_LLM -> false;
+            case AUTO -> isOpenAiConfigured();
+        };
+    }
+
+    /**
+     * Determine if we should try local LLM based on provider setting.
+     */
+    private boolean shouldUseLocalLlm() {
+        return switch (aiProvider) {
+            case OPENAI -> false;
+            case LOCAL_LLM -> enabled;
+            case AUTO -> enabled;
+        };
+    }
+
+    /**
+     * Check if AI provider is available based on the configured provider mode.
      */
     public boolean isAvailable() {
-        if (isOpenAiConfigured()) {
+        if (shouldUseOpenAi()) {
             return true;
         }
-        if (!enabled) return false;
+        if (!shouldUseLocalLlm()) return false;
+        return checkLocalLlmAvailability();
+    }
+
+    /**
+     * Check if local LLM (LM Studio / Ollama / vLLM) is reachable.
+     */
+    private boolean checkLocalLlmAvailability() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/models"))
@@ -122,13 +169,38 @@ public class LmStudioClient {
     }
 
     /**
-     * Distill conversation context using OpenAI (if key provided) or local LM Studio.
+     * Distill conversation context using the configured AI provider.
+     * Provider resolution order depends on ai.provider setting:
+     *   OPENAI:    OpenAI only
+     *   LOCAL_LLM: Local LLM only (LM Studio / Ollama / vLLM)
+     *   AUTO:      OpenAI if key set → Local LLM → empty (rule-based fallback)
      */
     public Optional<String> distillWithAi(String title, String project, String rawContent) {
-        if (!isOpenAiConfigured() && !enabled) {
-            return Optional.empty();
+        // Try OpenAI first (if applicable)
+        if (shouldUseOpenAi()) {
+            Optional<String> result = callChatCompletion(title, project, rawContent,
+                    openAiBaseUrl + "/chat/completions", openAiModel, openAiApiKey, true);
+            if (result.isPresent()) return result;
+            // If OPENAI-only mode, don't fall through
+            if (aiProvider == AiProvider.OPENAI) return Optional.empty();
         }
 
+        // Try local LLM (LM Studio / Ollama / vLLM)
+        if (shouldUseLocalLlm() && checkLocalLlmAvailability()) {
+            return callChatCompletion(title, project, rawContent,
+                    baseUrl + "/chat/completions", resolveModelName(), null, false);
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Unified chat completion call supporting OpenAI, LM Studio, Ollama, and vLLM
+     * (all expose OpenAI-compatible /v1/chat/completions endpoints).
+     */
+    private Optional<String> callChatCompletion(String title, String project, String rawContent,
+                                                 String endpointUrl, String activeModel,
+                                                 String apiKey, boolean isCloud) {
         try {
             String systemPrompt = """
 You are OmniContext AI context distillation engine.
@@ -142,21 +214,13 @@ TASKS: <next steps>
 MEM: <bullet points of core technical facts>
 """.formatted(project != null ? project : "General", title != null ? title : "Context");
 
-            boolean useOpenAi = isOpenAiConfigured();
-            String endpointUrl;
-            String activeModel;
             HttpRequest.Builder reqBuilder = HttpRequest.newBuilder();
-
-            if (useOpenAi) {
-                endpointUrl = openAiBaseUrl + "/chat/completions";
-                activeModel = openAiModel;
-                reqBuilder.header("Authorization", "Bearer " + openAiApiKey);
-                log.info("Directly using OpenAI Cloud (model: {}, url: {}) - skipping local LM Studio check", activeModel, endpointUrl);
-            } else {
-                endpointUrl = baseUrl + "/chat/completions";
-                activeModel = resolveModelName();
-                log.info("Using local LM Studio (model: {}, url: {})", activeModel, endpointUrl);
+            if (apiKey != null && !apiKey.isBlank()) {
+                reqBuilder.header("Authorization", "Bearer " + apiKey);
             }
+
+            String providerLabel = isCloud ? "OpenAI" : "Local LLM";
+            log.info("Using {} (model: {}, url: {})", providerLabel, activeModel, endpointUrl);
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("model", activeModel);
@@ -172,7 +236,7 @@ MEM: <bullet points of core technical facts>
             HttpRequest request = reqBuilder
                     .uri(URI.create(endpointUrl))
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(useOpenAi ? 45 : 75))
+                    .timeout(Duration.ofSeconds(isCloud ? 45 : timeoutSeconds))
                     .POST(HttpRequest.BodyPublishers.ofString(requestJson))
                     .build();
 
@@ -195,12 +259,12 @@ MEM: <bullet points of core technical facts>
                         if (clean.isEmpty()) {
                             clean = raw.trim();
                         }
-                        log.info("{} distillation completed successfully ({} chars)", useOpenAi ? "OpenAI" : "LM Studio", clean.length());
+                        log.info("{} distillation completed successfully ({} chars)", providerLabel, clean.length());
                         return Optional.of(clean);
                     }
                 }
             } else {
-                log.warn("{} returned HTTP {}: {}", useOpenAi ? "OpenAI" : "LM Studio", response.statusCode(), response.body());
+                log.warn("{} returned HTTP {}: {}", providerLabel, response.statusCode(), response.body());
             }
 
         } catch (Exception e) {

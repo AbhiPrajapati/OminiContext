@@ -1,17 +1,25 @@
 package com.omnicontext.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.time.LocalDateTime;
 
 @Document(collection = "context_capsules")
+@CompoundIndexes({
+    @CompoundIndex(name = "project_createdAt_idx", def = "{'project': 1, 'createdAt': -1}")
+})
 public class ContextCapsule {
 
     @Id
     private String id;
 
+    @TextIndexed(weight = 3)
     private String title;
 
     @Indexed
@@ -21,6 +29,7 @@ public class ContextCapsule {
 
     private String rawContent;
 
+    @TextIndexed(weight = 1)
     private String compressedContent;
 
     private String compressionStrategy;
@@ -31,6 +40,7 @@ public class ContextCapsule {
 
     private double compressionRatio;
 
+    @TextIndexed(weight = 2)
     private String tags;
 
     @Indexed(unique = true)

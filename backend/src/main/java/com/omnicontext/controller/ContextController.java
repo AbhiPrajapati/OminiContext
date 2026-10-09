@@ -1,6 +1,7 @@
 package com.omnicontext.controller;
 
 import com.omnicontext.dto.*;
+import com.omnicontext.exception.ResourceNotFoundException;
 import com.omnicontext.model.ContextCapsule;
 import com.omnicontext.model.ContextCollaborator;
 import com.omnicontext.service.ContextService;
@@ -32,7 +33,7 @@ public class ContextController {
     public ResponseEntity<ContextCapsule> getById(@PathVariable String id) {
         return contextService.getById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ResourceNotFoundException("ContextCapsule", id));
     }
 
     @PostMapping
@@ -45,12 +46,8 @@ public class ContextController {
     public ResponseEntity<ContextCapsule> update(
             @PathVariable String id,
             @Valid @RequestBody UpdateContextRequest request) {
-        try {
-            ContextCapsule updated = contextService.updateContext(id, request);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        ContextCapsule updated = contextService.updateContext(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -61,12 +58,8 @@ public class ContextController {
 
     @PostMapping("/{id}/fork")
     public ResponseEntity<ContextCapsule> fork(@PathVariable String id) {
-        try {
-            ContextCapsule forked = contextService.forkContext(id);
-            return ResponseEntity.status(HttpStatus.CREATED).body(forked);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        ContextCapsule forked = contextService.forkContext(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(forked);
     }
 
     @PostMapping("/preview-compression")
@@ -88,10 +81,6 @@ public class ContextController {
     public ResponseEntity<ContextCollaborator> addNote(
             @PathVariable String id,
             @Valid @RequestBody AddNoteRequest request) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(contextService.addNote(id, request));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(contextService.addNote(id, request));
     }
 }
