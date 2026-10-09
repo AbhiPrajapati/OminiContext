@@ -13,8 +13,10 @@
   border-right: none;
   border-top: none;
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(10, 13, 20, 0.85);
+  background: var(--bg-nav);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .nav-content {
@@ -36,8 +38,8 @@
 
 .brand-logo-icon {
   font-size: 1.4rem;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.35);
   width: 34px;
   height: 34px;
   display: flex;
@@ -50,8 +52,9 @@
   font-family: var(--font-heading);
   font-size: 1.3rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-main);
   letter-spacing: -0.02em;
+  transition: color 0.2s ease;
 }
 
 .gradient-text {
@@ -85,41 +88,97 @@
 }
 
 .nav-link:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  background: var(--pill-hover-bg);
 }
 
 .nav-link.active {
-  color: #c4b5fd;
-  background: rgba(139, 92, 246, 0.15);
+  color: var(--accent-primary);
+  background: var(--pill-active-bg);
   font-weight: 600;
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
-.backend-status-pill {
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 6px;
+  border-radius: var(--radius-full);
+  background: var(--pill-bg);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--pill-hover-bg);
+  border-color: var(--border-highlight);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.toggle-pill {
+  width: 36px;
+  height: 20px;
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  padding: 2px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.25s ease;
+  position: relative;
 }
 
-.status-dot {
-  width: 6px;
-  height: 6px;
-  background: #10b981;
+.toggle-pill.dark-active {
+  background: rgba(124, 58, 237, 0.4);
+}
+
+.toggle-indicator {
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 0 6px #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+
+.dark-active .toggle-indicator {
+  transform: translateX(16px);
+  background: #1e1b4b;
+  color: #c4b5fd;
+}
+
+.theme-icon {
+  display: block;
+}
+
+.sun-icon {
+  color: #d97706;
+}
+
+.moon-icon {
+  color: #a78bfa;
+}
+
+.theme-toggle-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-width: 34px;
+  text-align: left;
 }
 
 .btn-nav {
@@ -132,8 +191,11 @@
   flex: 1;
 }
 
-@media (max-width: 768px) {
-  .backend-status-pill {
+@media (max-width: 640px) {
+  .theme-toggle-label {
     display: none;
+  }
+  .theme-toggle-btn {
+    padding: 5px;
   }
 }

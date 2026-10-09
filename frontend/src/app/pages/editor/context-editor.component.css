@@ -32,12 +32,15 @@
   font-size: 0.85rem;
   font-weight: 500;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--pill-bg);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  transition: all 0.2s;
 }
 .back-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--pill-hover-bg);
+  color: var(--text-main);
+  border-color: var(--border-highlight);
 }
 
 .title-editor {
@@ -55,25 +58,26 @@
   border: 1px solid transparent;
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: var(--text-main);
   width: 100%;
 }
 .title-input:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-subtle);
 }
 .title-input:focus {
-  background: var(--bg-surface);
+  background: var(--input-bg);
   border-color: var(--accent-primary);
 }
 
 .version-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  background: rgba(139, 92, 246, 0.2);
-  color: #c4b5fd;
+  background: var(--pill-active-bg);
+  color: var(--pill-active-text);
   padding: 3px 8px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
+  border: 1px solid var(--pill-active-border);
 }
 
 .header-right {
@@ -123,7 +127,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
   transition: .3s;
 }
 .slider.round {
@@ -137,13 +142,15 @@
   content: "";
   height: 14px;
   width: 14px;
-  left: 3px;
-  bottom: 3px;
+  left: 2px;
+  bottom: 2px;
   background-color: white;
   transition: .3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 input:checked + .slider {
-  background-color: #8b5cf6;
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 input:checked + .slider:before {
   transform: translateX(16px);
@@ -159,10 +166,12 @@ input:checked + .slider:before {
   align-items: center;
   padding: 14px 24px;
   margin-bottom: 20px;
-  background: rgba(15, 20, 34, 0.8);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--hero-bg);
+  border: 1px solid var(--hero-border);
+  box-shadow: var(--shadow-sm);
   flex-wrap: wrap;
   gap: 20px;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .metric-block {
@@ -181,8 +190,8 @@ input:checked + .slider:before {
   font-weight: 700;
 }
 .text-muted-red { color: #f87171; }
-.text-cyan { color: #38bdf8; }
-.text-emerald { color: #34d399; }
+.text-cyan { color: var(--accent-cyan); }
+.text-emerald { color: var(--accent-emerald); }
 
 .metric-unit {
   font-size: 0.85rem;
@@ -215,7 +224,7 @@ input:checked + .slider:before {
   font-weight: 500;
 }
 .status-pulse {
-  color: #38bdf8;
+  color: var(--accent-cyan);
   animation: pulseText 1.5s infinite;
 }
 @keyframes pulseText {
@@ -224,7 +233,7 @@ input:checked + .slider:before {
   100% { opacity: 0.6; }
 }
 .status-ready {
-  color: #34d399;
+  color: var(--accent-emerald);
 }
 
 .strategy-selector {
@@ -240,42 +249,43 @@ input:checked + .slider:before {
   margin-right: 4px;
 }
 .strategy-pill {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--pill-bg);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
   padding: 5px 12px;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 .strategy-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--pill-hover-bg);
+  color: var(--text-main);
 }
 .strategy-pill.active {
-  background: rgba(139, 92, 246, 0.2);
-  color: #c4b5fd;
-  border-color: rgba(139, 92, 246, 0.5);
+  background: var(--pill-active-bg);
+  color: var(--pill-active-text);
+  border-color: var(--pill-active-border);
 }
 
 .pill-ai {
   background: rgba(168, 85, 247, 0.1);
   border-color: rgba(168, 85, 247, 0.3);
-  color: #d8b4fe;
+  color: var(--pill-active-text);
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 .pill-ai:hover {
   background: rgba(168, 85, 247, 0.2);
-  color: #fff;
+  color: var(--text-main);
   border-color: rgba(168, 85, 247, 0.6);
 }
 .pill-ai.active {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(56, 189, 248, 0.3));
-  color: #fff;
-  border-color: #a855f7;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(56, 189, 248, 0.25));
+  color: var(--text-main);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.25);
 }
 
 .lmstudio-dot {
@@ -305,6 +315,10 @@ input:checked + .slider:before {
   height: 520px;
   padding: 16px;
   background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 .card-top {
@@ -324,7 +338,7 @@ input:checked + .slider:before {
 .top-title h4 {
   font-size: 0.92rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .char-count {
@@ -333,9 +347,9 @@ input:checked + .slider:before {
 }
 
 .btn-copy-action {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: var(--pill-bg);
+  color: var(--accent-cyan);
+  border: 1px solid var(--border-subtle);
   padding: 4px 10px;
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -343,29 +357,32 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  transition: all 0.2s ease;
 }
 .btn-copy-action:hover {
-  background: rgba(56, 189, 248, 0.25);
+  background: var(--accent-primary);
   color: #fff;
+  border-color: var(--accent-primary);
 }
 
 .raw-textarea, .compressed-textarea {
   flex: 1;
   width: 100%;
   resize: none;
-  background: #090c13;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--code-bg-raw);
+  border: 1px solid var(--code-border);
   border-radius: var(--radius-sm);
   padding: 14px;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: var(--code-color-raw);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .compressed-textarea {
-  color: #93c5fd;
-  background: #070a10;
+  color: var(--code-color-compressed);
+  background: var(--code-bg-compressed);
 }
 
 .card-bottom {
@@ -389,6 +406,7 @@ input:checked + .slider:before {
 .share-endpoints-section h3 {
   font-size: 1.15rem;
   margin-bottom: 4px;
+  color: var(--text-main);
 }
 .subtitle {
   font-size: 0.85rem;
@@ -403,7 +421,7 @@ input:checked + .slider:before {
 }
 
 .endpoint-box {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--meter-bg);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 14px;
@@ -423,21 +441,22 @@ input:checked + .slider:before {
   padding: 2px 6px;
   border-radius: 4px;
 }
-.ep-human { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
-.ep-raw { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
-.ep-mcp { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.ep-human { background: var(--pill-active-bg); color: var(--pill-active-text); }
+.ep-raw { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+.ep-mcp { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
 
 .ep-title {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-main);
 }
 
 .ep-url {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--text-secondary);
-  background: #090c13;
+  background: var(--code-bg-raw);
+  border: 1px solid var(--border-subtle);
   padding: 6px 10px;
   border-radius: 4px;
   word-break: break-all;
@@ -456,13 +475,14 @@ input:checked + .slider:before {
 .notes-section h3 {
   font-size: 1.15rem;
   margin-bottom: 4px;
+  color: var(--text-main);
 }
 
 .add-note-box {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--meter-bg);
   padding: 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
@@ -493,8 +513,8 @@ input:checked + .slider:before {
 }
 
 .note-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--meter-bg);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 14px 16px;
 }
@@ -508,7 +528,7 @@ input:checked + .slider:before {
 .note-author {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #c4b5fd;
+  color: var(--pill-active-text);
 }
 
 .note-date {

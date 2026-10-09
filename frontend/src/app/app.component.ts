@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet, RouterModule } from '@angular/router';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +11,11 @@ import { RouterOutlet, RouterModule } from '@angular/router';
 })
 export class AppComponent {
   title = 'OmniContext';
+  private readonly themeService = inject(ThemeService);
+
+  readonly isDark = this.themeService.isDark;
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
+  }
 }
